@@ -1,0 +1,495 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080817">
+<title>A Little Bouquet For You ♡</title>
+
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    min-height: 100svh;
+    padding: 22px 14px 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    background:
+        radial-gradient(ellipse at 50% 42%,
+        rgba(49,44,91,.38), transparent 55%),
+        #070711;
+    color: #f8efff;
+    font-family: "Courier New", monospace;
+}
+
+.page {
+    width: min(100%, 760px);
+    margin: auto;
+    text-align: center;
+}
+
+.frame {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border: 1.5px solid #5596ff;
+    border-radius: 4px;
+    background: radial-gradient(
+        ellipse at 50% 42%,
+        #15152b 0%, #090914 72%
+    );
+    box-shadow: 0 0 22px #276cff38,
+                inset 0 0 25px #276cff12;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 700 / 650;
+}
+
+.message {
+    min-height: 24px;
+    padding: 0 8px 13px;
+    color: #a9e5ff;
+    font-size: clamp(11px, 2.5vw, 15px);
+    text-shadow: 0 0 10px #53c8ff;
+    overflow-wrap: anywhere;
+}
+
+.caption {
+    margin: 17px auto 12px;
+    max-width: 100%;
+    font: 700 clamp(21px, 5.2vw, 34px)/1.18 Arial, sans-serif;
+    letter-spacing: -.5px;
+    overflow-wrap: anywhere;
+}
+
+.subcaption {
+    color: #c4b5dc;
+    font: 12px Arial, sans-serif;
+    margin-bottom: 15px;
+}
+
+button {
+    border: 1px solid #8bcfff;
+    border-radius: 999px;
+    padding: 11px 20px;
+    background: #14172b;
+    color: #d9f3ff;
+    font: 13px "Courier New", monospace;
+    cursor: pointer;
+    box-shadow: 0 0 12px #529bff20;
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 14px 10px 22px;
+        align-items: flex-start;
+    }
+
+    .page {
+        margin: auto 0;
+    }
+
+    .caption {
+        margin-top: 14px;
+    }
+
+    .subcaption {
+        font-size: 11px;
+    }
+}
+
+@media (max-height: 700px) and (min-width: 600px) {
+    body { align-items: flex-start; }
+    .page { margin: 8px auto; }
+}
+</style>
+</head>
+
+<body>
+<main class="page">
+
+<section class="frame">
+    <canvas id="art" width="700" height="650"
+    aria-label="An animated bouquet of flowers"></canvas>
+
+    <div class="message" id="message"></div>
+</section>
+
+<h1 class="caption" id="caption">
+    for my boyfriendd ♡
+</h1>
+
+<div class="subcaption">
+    made just for you ✧
+</div>
+
+<button id="surprise">
+    open a little surprise ♡
+</button>
+
+
+
+</main>
+
+
+<script>
+const canvas = document.getElementById("art");
+const ctx = canvas.getContext("2d");
+
+const W = canvas.width;
+const H = canvas.height;
+
+const particles = [];
+const stars = [];
+
+let t = 0;
+let surpriseMode = false;
+let floatingHearts = [];
+
+const palettes = [
+    ["#ff8fbd", "#ffb1d0", "#ffd2e4", "#fff0f5"],
+    ["#ffd36e", "#ffe69a", "#fff1c5", "#fff9e8"],
+    ["#b99aff", "#d2baff", "#e8dcff", "#f7f0ff"],
+    ["#83d8ed", "#a9e9f3", "#d2f6fa", "#f0ffff"]
+];
+
+function addParticle(
+    x, y, color, size, glyph, cx, cy, orbit, phase
+) {
+    particles.push({
+        x, y, color, size, glyph, cx, cy,
+        orbit, phase,
+        speed: 0.5 + Math.random() * 0.5,
+        sway: 2 + Math.random() * 3
+    });
+}
+
+// FLOWER PETALS
+
+function makeFlower(cx, cy, radius, palette, rotation = 0) {
+
+    const petalCount = 8;
+
+    for (let p = 0; p < petalCount; p++) {
+
+        const a = rotation + p * Math.PI * 2 / petalCount;
+
+        const pcx = cx + Math.cos(a) * radius * 0.48;
+        const pcy = cy + Math.sin(a) * radius * 0.48;
+
+        for (let i = 0; i < 45; i++) {
+
+            const ang = Math.random() * Math.PI * 2;
+            const r = Math.sqrt(Math.random());
+
+            const px = pcx + Math.cos(ang) * radius * 0.29 * r;
+            const py = pcy + Math.sin(ang) * radius * 0.22 * r;
+
+            const col = palette[
+                Math.floor(Math.random() * palette.length)
+            ];
+
+            addParticle(
+                px,
+                py,
+                col,
+                5 + Math.random() * 3,
+                Math.random() > .72 ? "✦" :
+                (Math.random() > .5 ? "·" : "*"),
+                cx,
+                cy,
+                0.15 + Math.random() * 0.2,
+                Math.random() * Math.PI * 2
+            );
+        }
+    }
+
+    // FLOWER CENTER
+
+    for (let i = 0; i < 45; i++) {
+
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * radius * 0.18;
+
+        addParticle(
+            cx + Math.cos(a) * r,
+            cy + Math.sin(a) * r,
+            i % 3 ? "#fff0a8" : "#fffbdc",
+            5 + Math.random() * 2,
+            i % 4 ? "·" : "✧",
+            cx, cy, 0.08, a
+        );
+    }
+}
+
+// STEMS AND LINES
+
+function makeLine(
+    x1, y1, x2, y2, color, count,
+    glyphs = ["·", "/"]
+) {
+
+    for (let i = 0; i < count; i++) {
+
+        const q = Math.random();
+
+        const x = x1 + (x2 - x1) * q +
+                  (Math.random() - .5) * 3;
+
+        const y = y1 + (y2 - y1) * q +
+                  (Math.random() - .5) * 3;
+
+        addParticle(
+            x, y, color,
+            5 + Math.random() * 2,
+            glyphs[Math.floor(Math.random() * glyphs.length)],
+            350, 490, 0.025, Math.random() * 6
+        );
+    }
+}
+
+// LEAVES
+
+function makeLeaf(cx, cy, angle, length, color) {
+
+    for (let i = 0; i < 30; i++) {
+
+        const q = Math.random() * 2 - 1;
+        const along = Math.random();
+        const width = Math.sin(along * Math.PI) * length * .22;
+        const side = q * width;
+
+        const x = cx + Math.cos(angle) * along * length
+                  - Math.sin(angle) * side;
+
+        const y = cy + Math.sin(angle) * along * length
+                  + Math.cos(angle) * side;
+
+        addParticle(
+            x, y, color,
+            5 + Math.random() * 2,
+            Math.random() > .7 ? "✧" : "·",
+            350, 490, .035, Math.random() * 6
+        );
+    }
+}
+
+// ARRANGE THE BOUQUET
+
+makeFlower(245, 190, 65, palettes[0], -.15);
+makeFlower(350, 145, 72, palettes[1], .1);
+makeFlower(455, 190, 65, palettes[2], .2);
+makeFlower(295, 280, 58, palettes[3], .1);
+makeFlower(405, 280, 58, palettes[0], -.1);
+
+// FLOWER STEMS
+
+makeLine(245, 225, 330, 485, "#75d99a", 105);
+makeLine(350, 180, 350, 490, "#80e2a2", 115);
+makeLine(455, 225, 370, 485, "#75d99a", 105);
+makeLine(295, 310, 340, 490, "#80e2a2", 75);
+makeLine(405, 310, 360, 490, "#80e2a2", 75);
+
+// LEAVES
+
+makeLeaf(300, 375, 2.75, 75, "#69c98c");
+makeLeaf(400, 390, .4, 75, "#69c98c");
+makeLeaf(320, 430, 2.9, 48, "#83dfa0");
+makeLeaf(380, 440, .25, 48, "#83dfa0");
+
+// WRAPPER
+
+makeLine(260, 475, 350, 610, "#d7b5ff", 100);
+makeLine(440, 475, 350, 610, "#d7b5ff", 100);
+makeLine(260, 475, 440, 475, "#e8ccff", 75);
+makeLine(350, 610, 350, 630, "#e8ccff", 25);
+
+// BACKGROUND STARS
+
+for (let i = 0; i < 35; i++) {
+
+    stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        phase: Math.random() * 6.28,
+        size: 7 + Math.random() * 7
+    });
+}
+</script>
+
+
+<script>
+
+// MAIN ANIMATION
+let lastFrame = 0;
+function draw(now) {
+    if (now - lastFrame < 33) {
+        requestAnimationFrame(draw);
+        return;
+    }
+
+    lastFrame = now;
+
+    t += 0.035
+
+    ctx.clearRect(0, 0, W, H);
+
+    // TWINKLING STARS
+
+    stars.forEach(s => {
+
+        ctx.globalAlpha =
+            .2 + (Math.sin(t * 2 + s.phase) + 1) * .3;
+
+        ctx.fillStyle = "#e7eaff";
+        ctx.font = `${s.size}px monospace`;
+
+        ctx.fillText("✧", s.x, s.y);
+    });
+
+    // ROTATING FLOWER PARTICLES
+
+    particles.forEach(p => {
+
+        const a = t * p.speed + p.phase;
+
+        const dx = p.x - p.cx;
+        const dy = p.y - p.cy;
+
+        const cos = Math.cos(a * p.orbit);
+        const sin = Math.sin(a * p.orbit);
+
+        const x =
+            p.cx + dx * cos - dy * sin +
+            Math.sin(t * 1.8 + p.phase) * p.sway;
+
+        const y =
+            p.cy + dx * sin + dy * cos +
+            Math.cos(t * 1.5 + p.phase) * p.sway;
+
+        const alpha =
+            .55 + (Math.sin(t * 3 + p.phase) + 1) * .22;
+
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 0;
+        ctx.font = `${p.size}px monospace`;
+
+        ctx.fillText(p.glyph, x, y);
+    });
+
+    // FLOATING HEARTS
+
+    if (surpriseMode && Math.random() < .09) {
+
+        const x = 35 + Math.random() * (W - 70);
+
+        floatingHearts.push({
+            x,
+            y: H + 10,
+            life: 0,
+            glyph: Math.random() > .5 ? "♡" : "♥"
+        });
+    }
+
+    floatingHearts = floatingHearts.filter(
+        h => h.life < 150
+    );
+
+    floatingHearts.forEach(h => {
+
+        h.y -= 1.15;
+        h.life++;
+
+        ctx.globalAlpha = Math.max(
+            0, 1 - h.life / 150
+        );
+
+        ctx.fillStyle = "#ff9acb";
+        ctx.font = "17px monospace";
+
+        ctx.fillText(
+            h.glyph,
+            h.x + Math.sin(t * 3 + h.life) * 5,
+            h.y
+        );
+    });
+
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+
+    setTimeout(() => requestAnimationFrame(draw), 33);
+}
+
+requestAnimationFrame(draw);
+
+// PERSONAL MESSAGE
+
+const recipient = "raihannn";
+
+const firstMessage = `For you, ${recipient} :3`;
+
+const secondMessage =
+    "i reaallyy really love youu ♡";
+
+
+function typeMessage(text) {
+
+    const el = document.getElementById("message");
+
+    el.textContent = "";
+
+    let i = 0;
+
+    function step() {
+
+        if (i < text.length) {
+
+            el.textContent += text[i++];
+
+            setTimeout(step, 35);
+        }
+    }
+
+    step();
+}
+
+typeMessage(firstMessage);
+
+// SURPRISE BUTTON
+
+document.getElementById("surprise").addEventListener(
+    "click", () => {
+
+        surpriseMode = true;
+
+        typeMessage(secondMessage);
+
+        document.getElementById("caption").textContent =
+            "thank you for everything, i reaally appreciatee youuu!";
+    }
+);
+
+</script>
+</body>
+</html>
+
+</body>
+</html>
